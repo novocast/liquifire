@@ -7,12 +7,12 @@ return [
     /*
      * End points and URLs
      */
-    'endpoint' => 'https://myyears.liquifire.com/myyears',
+    'endpoint' => env('LF_ENDPOINT', 'LF_ENDPOINT'),
 
     'urls' => [
-        'product' => 'file:dev_1_products/displayProduct',
-        'adverts' => 'file:dev_1_products/displayAdvert',
+        'product' => env('LF_PRODUCT', 'LF_PRODUCT'),
+        'adverts' => env('LF_ADVERT', 'LF_ADVERT'),
     ],
 
-    'version' => 'web'
+    'version' => env('LF_VERSION', 'LF_VERSION')
 ];

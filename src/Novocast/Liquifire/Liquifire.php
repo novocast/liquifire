@@ -13,6 +13,7 @@ class Liquifire
     private $version = 'web';
 
     private $params = [];
+    private $imageType = 'product';
     
 
     public function __construct()
@@ -113,18 +114,63 @@ class Liquifire
     }
     
     /**
+     * Set the end point for the API. This dictates format of response. JSON is default
+     * @param array $param
+     * @return object $this
+     */
+    protected function getRequestService()
+    {
+        $services = $this->urls;
+
+        if (isset($services[$this->imageType])) {
+            return 'call=url['.$services[$this->imageType].']';
+        }
+
+        return false;
+    }
+    
+    /**
+     * Set the end point for the API. This dictates format of response. JSON is default
+     * @param array $param
+     * @return object $this
+     */
+    protected function getRequestSize()
+    {
+        return 'scale=size[1048]';
+    }
+    
+    /**
+     * Set the end point for the API. This dictates format of response. JSON is default
+     * @param array $param
+     * @return object $this
+     */
+    protected function getRequestParams()
+    {
+        $p = $this->params;
+        $_p = [];
+
+        foreach ($p as $key => $value) {
+            $_p[$key] = $key.'['.$value.']';
+        }
+
+        if (count($_p) > 0) {
+            $params = 'set='.implode(',', $_p);
+            return $params;
+        }
+        return false;
+    }
+    
+    /**
      * Build request URL from config and parameters
      * @return $this
      */
     protected function buildRequestURL()
     {
         $params = [];
-        $this->requestUrl = $this->endpoint.'?'.$this->getRequestParams().'&'.$this->getRequestService().'&';
-
+        $this->requestUrl = $this->endpoint.'?'.$this->getRequestParams().'&'.$this->getRequestService().'&'.$this->getRequestSize().'&sink';
         /*
             myyears.liquifire.com/myyears?set=line1[fdskjhfdskjhsfdkjhsfdkhjdsfkhdsf],prodID[BZ25_NN],version[web]&call=url[file:dev_1_products/displayProduct]&scale=size[1048]&sink
         */
-
         return $this;
     }
     
@@ -140,6 +186,7 @@ class Liquifire
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $output = curl_exec($ch);
+
        
         if ($output === false) {
             throw new \ErrorException(curl_error($ch));
@@ -153,7 +200,6 @@ class Liquifire
     public function parseResponse($response)
     {
         return $response;
-        
     }
 
     /**
@@ -163,6 +209,34 @@ class Liquifire
     public function getLastRequestURL()
     {
         return $this->requestUrl;
+    }
+
+    /**
+     * Returns last request URL string
+     * @return string last url string
+     */
+    public function generateProductImageUrl($personalisation, $sku)
+    {
+        $this->imageType = 'product';
         
+        $this->params = [
+            'line1' => $personalisation,
+            'prodID' => $sku,
+            'version' => $this->version
+        ];
+
+        $this->buildRequestURL();
+
+        return $this->requestUrl;
+    }
+
+    /**
+     * Returns last request URL string
+     * @return string last url string
+     */
+    public function generateProductImage($personalisation, $sku)
+    {
+        $url = $this->generateProductImageUrl($personalisation, $sku);
+        return $this->makeRequest();
     }
 }
