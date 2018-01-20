@@ -197,6 +197,53 @@ class Liquifire
 
     }
 
+    /**
+     * Make an API request to return test
+     * @return object
+     */
+    protected function testUrl()
+    {
+        $this->buildRequestURL();
+      
+        $ch = curl_init($this->requestUrl);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $output = curl_exec($ch);
+       
+        if ($output === false) {
+            throw new \ErrorException(curl_error($ch));
+        }
+
+        $info = curl_getinfo($ch);
+        $headers = get_headers_from_curl_response($output);
+        curl_close($ch);
+
+        if(isset($headers['LF-Error'])) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+
+    protected function parseCurlHeaders($response) {
+        $headers = array();
+        $header_text = substr($response, 0, strpos($response, "\r\n\r\n"));
+
+        foreach (explode("\r\n", $header_text) as $i => $line) {
+            if ($i === 0) {
+                $headers['http_code'] = $line;
+
+            } else {
+                list ($key, $value) = explode(': ', $line);
+                $headers[$key] = $value;
+
+            }
+        }
+        return $headers;
+    }
+
     public function parseResponse($response)
     {
         return $response;
@@ -227,7 +274,13 @@ class Liquifire
 
         $this->buildRequestURL();
 
-        return $this->requestUrl;
+        if($this->testUrl()) {
+            return $this->requestUrl;
+
+        } else {
+            return false;
+
+        }
     }
 
     /**
