@@ -216,7 +216,7 @@ class Liquifire
         }
 
         $info = curl_getinfo($ch);
-        $headers = parseCurlHeaders($output);
+        $headers = $this->parseCurlHeaders($output);
         curl_close($ch);
 
         if(isset($headers['LF-Error'])) {
